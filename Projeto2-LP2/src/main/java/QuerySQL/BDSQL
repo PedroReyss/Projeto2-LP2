@@ -1,108 +1,78 @@
--- Criar database
-CREATE DATABASE gestao_funcionarios;
-USE gestao_funcionarios;
+CREATE DATABASE P2_LP2
+USE P2_LP2
 
--- Tabela Departamentos
-CREATE TABLE departamentos (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+-- Tabela Departamento
+CREATE TABLE Departamento (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    nome VARCHAR(100) NOT NULL
+);
+
+-- Tabela Cargo  
+CREATE TABLE Cargo (
+    id INT PRIMARY KEY IDENTITY(1,1),
     nome VARCHAR(100) NOT NULL,
-    localizacao VARCHAR(100)
+    SalarioBase DECIMAL(10,2) NOT NULL
 );
 
--- Tabela Cargos
-CREATE TABLE cargos (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    titulo VARCHAR(100) NOT NULL,
-    salario_base DECIMAL(10,2),
-    bonus DECIMAL(10,2) DEFAULT 0
-);
-
--- Tabela Funcionários Próprios (Módulo 1)
-CREATE TABLE funcionarios (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+-- Tabela Funcionario
+CREATE TABLE Funcionario (
+    id INT PRIMARY KEY IDENTITY(1,1),
     nome VARCHAR(100) NOT NULL,
-    cpf VARCHAR(14) UNIQUE,
-    data_nascimento DATE,
-    matricula VARCHAR(20) UNIQUE,
-    salario_base DECIMAL(10,2),
-    data_contratacao DATE,
-    cargo_id INT,
-    departamento_id INT,
-    FOREIGN KEY (cargo_id) REFERENCES cargos(id),
-    FOREIGN KEY (departamento_id) REFERENCES departamentos(id)
+    CPF VARCHAR(11) UNIQUE NOT NULL,
+    data_nascimento DATETIME NOT NULL,
+    matricula VARCHAR(5) UNIQUE NOT NULL,
+    id_cargo INT NOT NULL,
+    id_departamento INT NOT NULL,
+    FOREIGN KEY (id_cargo) REFERENCES Cargo(id),
+    FOREIGN KEY (id_departamento) REFERENCES Departamento(id)
 );
 
--- Tabela Histórico de Cargos
-CREATE TABLE historico_cargos (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    funcionario_id INT,
-    cargo_id INT,
-    data_inicio DATE,
+-- Tabela Projeto
+CREATE TABLE Projeto (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    data_inicio DATETIME NOT NULL,
+    data_termino DATETIME
+);
+
+-- Tabela de relacionamento Funcionario_Projeto
+CREATE TABLE Funcionario_Projeto (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    id_funcionario INT NOT NULL,
+    id_projeto INT NOT NULL,
+    data_inicio DATE NOT NULL,
     data_fim DATE,
-    FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id),
-    FOREIGN KEY (cargo_id) REFERENCES cargos(id)
+    FOREIGN KEY (id_funcionario) REFERENCES Funcionario(id),
+    FOREIGN KEY (id_projeto) REFERENCES Projeto(id)
 );
 
--- Tabela Projetos
-CREATE TABLE projetos (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(100) NOT NULL,
-    descricao TEXT
+-- Tabela HistoricoCargo
+CREATE TABLE HistoricoCargo (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    id_funcionario INT NOT NULL,
+	id_cargo INT NOT NULL,
+    data_inicio DATETIME NOT NULL,
+	data_fim DATETIME,
+    FOREIGN KEY (id_funcionario) REFERENCES Funcionario(id),
+	FOREIGN KEY (id_cargo) REFERENCES Cargo(id)
 );
 
--- Tabela Funcionário-Projeto (Associação M:N)
-CREATE TABLE funcionario_projeto (
-    funcionario_id INT,
-    projeto_id INT,
-    PRIMARY KEY (funcionario_id, projeto_id),
-    FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id),
-    FOREIGN KEY (projeto_id) REFERENCES projetos(id)
+-- Tabela Ponto
+CREATE TABLE Ponto (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    id_funcionario INT NOT NULL,
+    data_hora DATETIME NOT NULL,
+    tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('entrada', 'saida')),
+    FOREIGN KEY (id_funcionario) REFERENCES Funcionario(id)
 );
 
--- Tabela Funcionários Terceirizados (Módulo 2)
-CREATE TABLE funcionarios_terceirizados (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(100) NOT NULL,
-    cpf VARCHAR(14) UNIQUE,
-    data_nascimento DATE,
-    empresa_prestadora VARCHAR(100),
-    periodo_inicio DATE,
-    periodo_fim DATE,
-    responsavel_interno VARCHAR(100),
-    departamento_id INT,
-    FOREIGN KEY (departamento_id) REFERENCES departamentos(id)
+-- Tabela Atividade
+CREATE TABLE Atividade (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    id_funcionario INT NOT NULL,
+    descricao TEXT NOT NULL,
+    data_registro DATETIME NOT NULL,
+    horas_trabalhadas DECIMAL(4,2),
+    FOREIGN KEY (id_funcionario) REFERENCES Funcionario(id)
 );
-
--- Tabela Controle de Acesso Terceirizados
-CREATE TABLE controle_acesso_terceirizados (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    terceirizado_id INT,
-    data_acesso DATE,
-    hora_entrada TIME,
-    hora_saida TIME,
-    FOREIGN KEY (terceirizado_id) REFERENCES funcionarios_terceirizados(id)
-);
-
--- Tabela Visitantes (Módulo 3)
-CREATE TABLE visitantes (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(100) NOT NULL,
-    documento VARCHAR(50),
-    motivo_visita TEXT,
-    data_entrada DATETIME,
-    data_saida DATETIME,
-    funcionario_visitado VARCHAR(100),
-    departamento_visitado VARCHAR(100),
-    cracha_gerado BOOLEAN DEFAULT FALSE
-);
-
--- Inserir dados iniciais
-INSERT INTO departamentos (nome, localizacao) VALUES
-('TI', 'São Paulo'),
-('RH', 'Rio de Janeiro'),
-('Financeiro', 'Belo Horizonte');
-
-INSERT INTO cargos (titulo, salario_base, bonus) VALUES
-('Gerente', 10000.00, 2000.00),
-('Desenvolvedor', 5000.00, 1000.00),
-('Analista', 7000.00, 1500.00);

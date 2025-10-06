@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.2"
+             xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
+                                 persistence_2_2.xsd">
+
+    <persistence-unit name="sistema-funcionarios">
+        <description>Sistema de Gestão de Funcionários</description>
+
+        <class>com.p2lp2.model.EntidadeBase</class>
+        <class>com.p2lp2.model.Funcionario</class>
+        <class>com.p2lp2.model.Cargo</class>
+        <class>com.p2lp2.model.Departamento</class>
+        <class>com.p2lp2.model.Projeto</class>
+        <class>com.p2lp2.model.FuncionarioProjeto</class>
+        <class>com.p2lp2.model.HistoricoCargo</class>
+        <class>com.p2lp2.model.Ponto</class>
+        <class>com.p2lp2.model.Atividade</class>
+
+        <properties>
+            <!-- Driver SQL Server -->
+            <property name="jakarta.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:sqlserver://localhost:1433;databaseName=P2_LP2;encrypt=true;trustServerCertificate=true"/>
+            <property name="jakarta.persistence.jdbc.user" value="sa"/>
+            <property name="jakarta.persistence.jdbc.password" value="123"/>
+
+            <!-- Configurações Hibernate -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.SQLServerDialect"/>
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+</persistence>
