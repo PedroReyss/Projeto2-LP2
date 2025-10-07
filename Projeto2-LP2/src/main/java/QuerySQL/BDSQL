@@ -14,17 +14,53 @@ CREATE TABLE Cargo (
     SalarioBase DECIMAL(10,2) NOT NULL
 );
 
--- Tabela Funcionario
-CREATE TABLE Funcionario (
+-- Tabela Pessoa
+CREATE TABLE Pessoa (
     id INT PRIMARY KEY IDENTITY(1,1),
     nome VARCHAR(100) NOT NULL,
     CPF VARCHAR(11) UNIQUE NOT NULL,
-    data_nascimento DATETIME NOT NULL,
+    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('PROPRIO', 'TERCEIRIZADO', 'VISITANTE'))
+);
+
+-- Tabela Funcionario (PRÓPRIO)
+CREATE TABLE Funcionario (
+    id INT PRIMARY KEY FOREIGN KEY REFERENCES Pessoa(id),
+    data_nascimento DATE NOT NULL,E
     matricula VARCHAR(5) UNIQUE NOT NULL,
     id_cargo INT NOT NULL,
     id_departamento INT NOT NULL,
     FOREIGN KEY (id_cargo) REFERENCES Cargo(id),
     FOREIGN KEY (id_departamento) REFERENCES Departamento(id)
+);
+
+-- Tabela FuncionarioTerceirizado
+CREATE TABLE FuncionarioTerceirizado (
+    id INT PRIMARY KEY FOREIGN KEY REFERENCES Pessoa(id),
+    funcao VARCHAR(100) NOT NULL,
+    empresa_prestadora VARCHAR(100) NOT NULL,
+    data_inicio_contrato DATE NOT NULL,
+    data_fim_contrato DATE NOT NULL,
+    id_responsavel INT,
+    id_departamento INT NOT NULL,
+    FOREIGN KEY (id_responsavel) REFERENCES Funcionario(id),
+    FOREIGN KEY (id_departamento) REFERENCES Departamento(id)
+);
+
+-- Tabela Visitante
+CREATE TABLE Visitante (
+    id INT PRIMARY KEY FOREIGN KEY REFERENCES Pessoa(id),
+    motivo_visita VARCHAR(200) NOT NULL,
+    data_hora_entrada DATETIME NOT NULL,
+    data_hora_saida DATETIME NULL,
+    id_funcionario_visitado INT NULL,
+    id_departamento_visitado INT NULL,
+    numero_cracha VARCHAR(10) UNIQUE NULL,
+
+    FOREIGN KEY (id_funcionario_visitado) REFERENCES Funcionario(id),
+    FOREIGN KEY (id_departamento_visitado) REFERENCES Departamento(id),
+
+    -- Garante que pelo menos um é preenchido
+    CHECK (id_funcionario_visitado IS NOT NULL OR id_departamento_visitado IS NOT NULL)
 );
 
 -- Tabela Projeto

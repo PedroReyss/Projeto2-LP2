@@ -7,14 +7,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "Funcionario")
-public class Funcionario extends EntidadeBase {
-
-    @Column(name = "nome", nullable = false, length = 100)
-    private String nome;
-
-    @Column(name = "CPF", nullable = false, unique = true, length = 11)
-    private String cpf;
-
+public class Funcionario extends Pessoa {
     @Column(name = "data_nascimento", nullable = false)
     private LocalDate dataNascimento;
 
@@ -38,18 +31,20 @@ public class Funcionario extends EntidadeBase {
     private List<HistoricoCargo> historicoCargos = new ArrayList<>();
 
     @OneToMany(mappedBy = "funcionario")
-    private List<Ponto> registrosPonto = new ArrayList<>();
-
-    @OneToMany(mappedBy = "funcionario")
     private List<Atividade> atividades = new ArrayList<>();
+
+    @OneToMany(mappedBy = "responsavel")
+    private List<FuncionarioTerceirizado> terceirizadosResponsaveis = new ArrayList<>();
+
+    @OneToMany(mappedBy = "funcionarioVisitado")
+    private List<Visitante> visitantes = new ArrayList<>();
 
     // Construtor
     public Funcionario() {}
 
     public Funcionario(String nome, String cpf, LocalDate dataNascimento,
                        String matricula, Cargo cargo, Departamento departamento) {
-        this.nome = nome;
-        this.cpf = cpf;
+        super(nome, cpf, "funcionario");
         this.dataNascimento = dataNascimento;
         this.matricula = matricula;
         this.cargo = cargo;
@@ -57,21 +52,6 @@ public class Funcionario extends EntidadeBase {
     }
 
     // Getters & Setters
-
-    public String getNome() {
-        return nome;
-    }
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getCpf() {
-        return cpf;
-    }
-    public void setCpf(String cpf) {
-        this.cpf = cpf;
-    }
-
     public LocalDate getDataNascimento() {
         return dataNascimento;
     }
@@ -102,9 +82,12 @@ public class Funcionario extends EntidadeBase {
     public List<FuncionarioProjeto> getProjetosFuncionarios() { return projetosFuncionarios; }
     public void setProjetosFuncionarios(List<FuncionarioProjeto> projetosFuncionarios) { this.projetosFuncionarios = projetosFuncionarios; }
 
-    public List<Ponto> getRegistrosPonto() { return registrosPonto; }
-    public void setRegistrosPonto(List<Ponto> registrosPonto) { this.registrosPonto = registrosPonto; }
-
     public List<Atividade> getAtividades() { return atividades; }
     public void setAtividades(List<Atividade> atividades) { this.atividades = atividades; }
+
+    public List<FuncionarioTerceirizado> getTerceirizadosResponsaveis() { return terceirizadosResponsaveis; }
+    public void setTerceirizadosResponsaveis(List<FuncionarioTerceirizado> terceirizadosResponsaveis) { this.terceirizadosResponsaveis = terceirizadosResponsaveis; }
+
+    public List<Visitante> getVisitantes() { return visitantes; }
+    public void setVisitantes(List<Visitante> visitantes) { this.visitantes = visitantes; }
 }

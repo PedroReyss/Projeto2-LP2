@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 public class Ponto extends EntidadeBase {
 
     @ManyToOne
-    @JoinColumn(name = "id_funcionario", nullable = false)
-    private Funcionario funcionario;
+    @JoinColumn(name = "id_pessoa", nullable = false)
+    private Pessoa pessoa;
 
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
@@ -20,15 +20,15 @@ public class Ponto extends EntidadeBase {
     // Construtores
     public Ponto() {}
 
-    public Ponto(Funcionario funcionario, LocalDateTime dataHora, String tipo) {
-        this.funcionario = funcionario;
+    public Ponto(Pessoa pessoa, LocalDateTime dataHora, String tipo) {
+        this.pessoa = pessoa;
         this.dataHora = dataHora;
         this.tipo = tipo;
     }
 
     // Getters e Setters
-    public Funcionario getFuncionario() { return funcionario; }
-    public void setFuncionario(Funcionario funcionario) { this.funcionario = funcionario; }
+    public Pessoa getPessoa() { return pessoa; }
+    public void setPessoa(Pessoa pessoa) { this.pessoa = pessoa; }
 
     public LocalDateTime getDataHora() { return dataHora; }
     public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }

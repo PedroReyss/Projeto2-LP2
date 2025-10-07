@@ -15,6 +15,12 @@ public class Departamento extends EntidadeBase {
     @OneToMany(mappedBy = "departamento")
     private List<Funcionario> funcionarios = new ArrayList<>();
 
+    @OneToMany(mappedBy = "departamento")
+    private List<FuncionarioTerceirizado> terceirizados = new ArrayList<>();
+
+    @OneToMany(mappedBy = "departamento")
+    private List<Visitante> visitantes = new ArrayList<>();
+
     // Construtor
     public Departamento() {
     }
@@ -38,4 +44,12 @@ public class Departamento extends EntidadeBase {
     public void setFuncionarios(List<Funcionario> funcionarios) {
         this.funcionarios = funcionarios;
     }
+
+    public List<FuncionarioTerceirizado> getTerceirizados() {
+        return terceirizados;
+    }
+    public void setFuncionariosTerceirizados(List<FuncionarioTerceirizado> terceirizados) { this.terceirizados = terceirizados; }
+
+    public List<Visitante> getVisitantes() { return visitantes; }
+    public void setVisitantes(List<Visitante> visitantes) { this.visitantes = visitantes; }
 }

@@ -32,6 +32,11 @@ public class Cargo extends EntidadeBase {
         this.salarioBase = salarioBase;
     }
 
+    // Métodos
+    public BigDecimal getSalarioTotal() {
+        return salarioBase.multiply(new BigDecimal(funcionarios.size()));
+    }
+
     // Getters & Setters
 
     public String getNome() {
