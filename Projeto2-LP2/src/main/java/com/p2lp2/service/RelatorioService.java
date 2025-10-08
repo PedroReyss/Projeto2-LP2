@@ -1,7 +1,8 @@
 package com.p2lp2.service;
 
 import com.p2lp2.model.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.util.List;
 
 public class RelatorioService {
@@ -11,36 +12,50 @@ public class RelatorioService {
         this.em = em;
     }
 
+    public void circulacaoDiaria() {
+        Long totalFuncionarios = em.createQuery(
+                "SELECT COUNT(f) FROM Funcionario f", Long.class).getSingleResult();
+
+        Long totalTerceirizados = em.createQuery(
+                "SELECT COUNT(t) FROM Terceirizado t", Long.class).getSingleResult();
+
+        Long totalVisitantesHoje = em.createQuery(
+                "SELECT COUNT(v) FROM Visitante v WHERE CAST(v.dataHoraEntrada AS date) = CAST(CURRENT_TIMESTAMP AS date)",
+                Long.class).getSingleResult();
+
+        System.out.println("🏢 Circulação Diária:");
+        System.out.println("   • Funcionários próprios: " + totalFuncionarios);
+        System.out.println("   • Terceirizados: " + totalTerceirizados);
+        System.out.println("   • Visitantes hoje: " + totalVisitantesHoje);
+        System.out.println("   • Total: " + (totalFuncionarios + totalTerceirizados + totalVisitantesHoje));
+    }
+
     public void funcionariosPorDepartamento() {
         List<Departamento> departamentos = em.createQuery(
                 "SELECT d FROM Departamento d", Departamento.class).getResultList();
 
+        if (departamentos.isEmpty()) {
+            System.out.println("Nenhum departamento cadastrado");
+            return;
+        }
+
         for (Departamento depto : departamentos) {
-            System.out.println(depto.getNome() + ": " +
-                    depto.getFuncionarios().size() + " funcionários, " +
-                    depto.getTerceirizados().size() + " terceirizados");
-        }
-    }
+            Long qtdFuncionarios = em.createQuery(
+                            "SELECT COUNT(f) FROM Funcionario f WHERE f.departamento = :depto",
+                            Long.class)
+                    .setParameter("depto", depto)
+                    .getSingleResult();
 
-    public void visitantesAtivos() {
-        List<Visitante> visitantes = em.createQuery(
-                "SELECT v FROM Visitante v WHERE v.dataHoraSaida IS NULL",
-                Visitante.class).getResultList();
+            Long qtdTerceirizados = em.createQuery(
+                            "SELECT COUNT(t) FROM Terceirizado t WHERE t.departamento = :depto",
+                            Long.class)
+                    .setParameter("depto", depto)
+                    .getSingleResult();
 
-        for (Visitante v : visitantes) {
-            System.out.println(v.getNome() + " - " + v.getMotivoVisita() +
-                    " (desde " + v.getDataHoraEntrada() + ")");
-        }
-    }
-
-    public void terceirizadosPorResponsavel() {
-        List<Funcionario> responsaveis = em.createQuery(
-                "SELECT f FROM Funcionario f WHERE SIZE(f.terceirizadosResponsaveis) > 0",
-                Funcionario.class).getResultList();
-
-        for (Funcionario resp : responsaveis) {
-            System.out.println(resp.getNome() + " gerencia " +
-                    resp.getTerceirizadosResponsaveis().size() + " terceirizados");
+            System.out.println("📊 " + depto.getNome() + ":");
+            System.out.println("   • Funcionários: " + qtdFuncionarios);
+            System.out.println("   • Terceirizados: " + qtdTerceirizados);
+            System.out.println("   • Total: " + (qtdFuncionarios + qtdTerceirizados));
         }
     }
 }

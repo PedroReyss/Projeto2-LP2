@@ -1,12 +1,8 @@
 package com.p2lp2.service;
 
-import com.p2lp2.model.Cargo;
-import com.p2lp2.model.Funcionario;
+import com.p2lp2.model.Pessoa;
 import com.p2lp2.model.Ponto;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
-
-import java.math.BigDecimal;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 public class PontoService {
@@ -16,29 +12,46 @@ public class PontoService {
         this.em = em;
     }
 
-    public void baterPonto(Funcionario funcionario) {
-        // Busca o último ponto do funcionário
-        Ponto ultimoPonto = getUltimoPonto(funcionario);
+    public void baterPonto(Pessoa pessoa) {
+        // Busca a pessoa no banco para garantir que está managed
+        Pessoa pessoaManaged = em.find(Pessoa.class, pessoa.getId());
+        if (pessoaManaged == null) {
+            System.out.println("❌ Pessoa não encontrada: ID " + pessoa.getId());
+            return;
+        }
 
-        // Determina entrada/saída baseado no último ponto
+        Ponto ultimoPonto = getUltimoPonto(pessoaManaged);
         String tipo = determinarTipoPonto(ultimoPonto);
 
-        // Cria e salva o novo ponto
-        Ponto novoPonto = new Ponto(funcionario, LocalDateTime.now(), tipo);
+        System.out.println("🕒 " + pessoaManaged.getNome() + " - último ponto: " +
+                (ultimoPonto != null ? ultimoPonto.getTipo() : "Nenhum") +
+                " -> novo: " + tipo);
 
-        em.getTransaction().begin();
-        em.persist(novoPonto);
-        em.getTransaction().commit();
+        Ponto novoPonto = new Ponto();
+        novoPonto.setPessoa(pessoaManaged);
+        novoPonto.setDataHora(LocalDateTime.now());
+        novoPonto.setTipo(tipo);
 
-        System.out.println(funcionario.getNome() + " bateu ponto de " + tipo);
+        try {
+            em.getTransaction().begin();
+            em.persist(novoPonto);
+            em.getTransaction().commit();
+            System.out.println("✅ " + pessoaManaged.getNome() + " bateu ponto de " + tipo);
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            System.out.println("❌ Erro ao bater ponto: " + e.getMessage());
+            throw e;
+        }
     }
 
-    private Ponto getUltimoPonto(Funcionario funcionario) {
+    private Ponto getUltimoPonto(Pessoa pessoa) {
         try {
             return em.createQuery(
-                            "SELECT p FROM Ponto p WHERE p.funcionario = :func " +
-                                    "ORDER BY p.dataHora DESC", Ponto.class)
-                    .setParameter("func", funcionario)
+                            "SELECT p FROM Ponto p WHERE p.pessoa = :pessoa ORDER BY p.dataHora DESC",
+                            Ponto.class)
+                    .setParameter("pessoa", pessoa)
                     .setMaxResults(1)
                     .getSingleResult();
         } catch (NoResultException e) {
@@ -47,11 +60,7 @@ public class PontoService {
     }
 
     private String determinarTipoPonto(Ponto ultimoPonto) {
-        if (ultimoPonto == null) {
-            return "entrada"; // Primeiro ponto
-        }
-
-        // Alterna entre entrada e saída
+        if (ultimoPonto == null) return "entrada";
         return ultimoPonto.getTipo().equals("entrada") ? "saida" : "entrada";
     }
 }

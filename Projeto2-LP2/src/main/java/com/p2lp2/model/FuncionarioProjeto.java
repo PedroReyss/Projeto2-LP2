@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "Funcionario_Projeto")
-public class FuncionarioProjeto extends EntidadeBase{
+public class FuncionarioProjeto extends EntidadeBase {
 
     @ManyToOne
     @JoinColumn(name = "id_funcionario", nullable = false)

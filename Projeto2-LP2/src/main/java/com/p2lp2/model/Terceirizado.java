@@ -2,46 +2,47 @@ package com.p2lp2.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "FuncionarioTerceirizado")
-@PrimaryKeyJoinColumn(name = "id")
-public class FuncionarioTerceirizado extends Pessoa {
+@DiscriminatorValue("TERCEIRIZADO")
+public class Terceirizado extends Pessoa {
 
-    @Column(name = "funcao", nullable = false, length = 100)
+    @Column(name = "funcao", length = 100)
     private String funcao;
 
-    @Column(name = "empresa_prestadora", nullable = false, length = 100)
+    @Column(name = "empresa_prestadora", length = 100)
     private String empresaPrestadora;
 
-    @Column(name = "data_inicio_contrato", nullable = false)
+    @Column(name = "data_inicio_contrato")
     private LocalDate dataInicioContrato;
 
-    @Column(name = "data_fim_contrato", nullable = false)
+    @Column(name = "data_fim_contrato")
     private LocalDate dataFimContrato;
 
     @ManyToOne
     @JoinColumn(name = "id_responsavel")
-    private Funcionario responsavel;
+    private Pessoa responsavel;
 
-    @ManyToOne
-    @JoinColumn(name = "id_departamento") // Coluna direta na tabela
-    private Departamento departamento;
+    public Terceirizado() {}
 
-    // Construtor
-    public FuncionarioTerceirizado() {}
-
-    public FuncionarioTerceirizado(String nome, String cpf, String funcao,
-                                   String empresaPrestadora, LocalDate dataInicioContrato,
-                                   LocalDate dataFimContrato, Funcionario responsavel) {
-        super(nome, cpf, "terceirizado");
+    public Terceirizado(String nome, String cpf, String funcao,
+                        String empresaPrestadora, LocalDate dataInicioContrato,
+                        LocalDate dataFimContrato, Pessoa responsavel, Departamento departamento) {
+        setNome(nome);
+        setCpf(cpf);
         this.funcao = funcao;
         this.empresaPrestadora = empresaPrestadora;
         this.dataInicioContrato = dataInicioContrato;
         this.dataFimContrato = dataFimContrato;
         this.responsavel = responsavel;
+        setDepartamento(departamento);
+    }
+
+    // Método para ser chamado após a persistência
+    public void gerarDadosTerceirizado() {
+        if (getNumeroCracha() == null) {
+            setNumeroCracha(gerarNumeroCracha());
+        }
     }
 
     // Getters e Setters
@@ -57,6 +58,11 @@ public class FuncionarioTerceirizado extends Pessoa {
     public LocalDate getDataFimContrato() { return dataFimContrato; }
     public void setDataFimContrato(LocalDate dataFimContrato) { this.dataFimContrato = dataFimContrato; }
 
-    public Funcionario getResponsavel() { return responsavel; }
-    public void setResponsavel(Funcionario responsavel) { this.responsavel = responsavel; }
+    public Pessoa getResponsavel() { return responsavel; }
+    public void setResponsavel(Pessoa responsavel) { this.responsavel = responsavel; }
+
+    @Override
+    public String getTipoPessoa() {
+        return "TERCEIRIZADO";
+    }
 }

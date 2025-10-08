@@ -3,7 +3,7 @@ package com.p2lp2;
 import com.p2lp2.model.*;
 import com.p2lp2.service.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +13,14 @@ public class Main {
     private static EntityManagerFactory emf;
     private static EntityManager em;
 
+    // Variáveis para armazenar os objetos criados
+    private static Funcionario joao;
+    private static Funcionario maria;
+    private static Terceirizado seguranca;
+    private static Visitante visitante;
+    private static Cargo analista;
+    private static Cargo gerente;
+
     public static void main(String[] args) {
         try {
             emf = Persistence.createEntityManagerFactory("sistema-funcionarios");
@@ -20,22 +28,24 @@ public class Main {
 
             System.out.println("=== SISTEMA DE GESTÃO ORGANIZATEC ===\n");
 
-            // Serviços
-            FuncionarioService funcService = new FuncionarioService(em);
-            CargoService cargoService = new CargoService(em);
+            // 1. LIMPAR TABELAS EXISTENTES
+            limparTabelas();
+
+            // Services
+            PessoaService pessoaService = new PessoaService(em);
             PontoService pontoService = new PontoService(em);
             RelatorioService relatorioService = new RelatorioService(em);
 
-            // 1. CRIAR DADOS DE TESTE
+            // 2. CRIAR DADOS DE TESTE
             criarDadosTeste();
 
-            // 2. TESTAR FUNCIONALIDADES
-            testarFuncionalidades(funcService, cargoService, pontoService);
+            // 3. TESTAR FUNCIONALIDADES
+            testarFuncionalidades(pessoaService, pontoService);
 
-            // 3. GERAR RELATÓRIOS
-            gerarRelatorios(relatorioService, cargoService);
+            // 4. GERAR RELATÓRIOS
+            gerarRelatorios(relatorioService);
 
-            System.out.println("\n=== DEMONSTRAÇÃO CONCLUÍDA ===");
+            System.out.println("\n✅ DEMONSTRAÇÃO CONCLUÍDA!");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -43,6 +53,23 @@ public class Main {
             if (em != null) em.close();
             if (emf != null) emf.close();
         }
+    }
+
+    private static void limparTabelas() {
+        System.out.println("🔄 LIMPANDO TABELAS EXISTENTES...");
+        em.getTransaction().begin();
+
+        em.createQuery("DELETE FROM Ponto").executeUpdate();
+        em.createQuery("DELETE FROM Atividade").executeUpdate();
+        em.createQuery("DELETE FROM HistoricoCargo").executeUpdate();
+        em.createQuery("DELETE FROM FuncionarioProjeto").executeUpdate();
+        em.createQuery("DELETE FROM Pessoa").executeUpdate();
+        em.createQuery("DELETE FROM Cargo").executeUpdate();
+        em.createQuery("DELETE FROM Departamento").executeUpdate();
+        em.createQuery("DELETE FROM Projeto").executeUpdate();
+
+        em.getTransaction().commit();
+        System.out.println("✅ Tabelas limpas!\n");
     }
 
     private static void criarDadosTeste() {
@@ -53,94 +80,134 @@ public class Main {
         // Departamentos
         Departamento rh = new Departamento("Recursos Humanos");
         Departamento ti = new Departamento("Tecnologia da Informação");
-        Departamento financeiro = new Departamento("Financeiro");
         em.persist(rh);
         em.persist(ti);
-        em.persist(financeiro);
 
         // Cargos
-        Cargo analista = new Cargo("Analista", new BigDecimal("5000.00"));
-        Cargo gerente = new Cargo("Gerente", new BigDecimal("8000.00"));
-        Cargo estagiario = new Cargo("Estagiário", new BigDecimal("1500.00"));
+        analista = new Cargo("Analista", new BigDecimal("5000.00"));
+        gerente = new Cargo("Gerente", new BigDecimal("8000.00"));
         em.persist(analista);
         em.persist(gerente);
-        em.persist(estagiario);
 
-        // Funcionários próprios
-        Funcionario joao = new Funcionario("João Silva", "12345678901",
-                LocalDate.of(1990, 5, 15), "00001", analista, ti);
-        Funcionario maria = new Funcionario("Maria Santos", "98765432100",
-                LocalDate.of(1985, 8, 20), "00002", gerente, rh);
-        Funcionario pedro = new Funcionario("Pedro Costa", "45612378900",
-                LocalDate.of(1995, 3, 10), "00003", estagiario, ti);
+        // Funcionário 1
+        joao = new Funcionario("João Silva", "11111111111",
+                LocalDate.of(1990, 5, 15), analista, ti);
         em.persist(joao);
-        em.persist(maria);
-        em.persist(pedro);
+        em.flush();
+        joao.gerarDadosFuncionario();
+        em.merge(joao);
 
-        // Funcionários terceirizados
-        FuncionarioTerceirizado terceirizado1 = new FuncionarioTerceirizado(
-                "Carlos Lima", "11122233344", "Segurança", "SegurMax",
+        // Funcionário 2 (responsável)
+        maria = new Funcionario("Maria Santos", "22222222222",
+                LocalDate.of(1985, 8, 20), gerente, rh);
+        em.persist(maria);
+        em.flush();
+        maria.gerarDadosFuncionario();
+        em.merge(maria);
+
+        // Terceirizado
+        seguranca = new Terceirizado("Carlos Lima", "33333333333", "Segurança", "SegurMax",
                 LocalDate.now().minusMonths(2), LocalDate.now().plusMonths(10),
                 maria, ti);
-        FuncionarioTerceirizado terceirizado2 = new FuncionarioTerceirizado(
-                "Ana Souza", "55566677788", "Limpeza", "CleanService",
-                LocalDate.now().minusMonths(1), LocalDate.now().plusMonths(6),
-                joao, rh);
-        em.persist(terceirizado1);
-        em.persist(terceirizado2);
+        em.persist(seguranca);
+        em.flush();
+        seguranca.gerarDadosTerceirizado();
+        em.merge(seguranca);
 
-        // Visitantes
-        Visitante visitante1 = new Visitante("Roberto Alves", "99988877766",
+        // Visitante
+        visitante = new Visitante("Roberto Alves", "44444444444",
                 "Reunião comercial", LocalDateTime.now().minusHours(2), maria);
-        Visitante visitante2 = new Visitante("Fernanda Oliveira", "44433322211",
-                "Entrevista de emprego", LocalDateTime.now().minusHours(1), ti);
-        em.persist(visitante1);
-        em.persist(visitante2);
+        em.persist(visitante);
+        em.flush();
+        visitante.gerarDadosVisitante();
+        em.merge(visitante);
 
         em.getTransaction().commit();
-        System.out.println("✅ Dados de teste criados com sucesso!\n");
+
+        System.out.println("✅ Dados criados!");
+        System.out.println("   - João (ID: " + joao.getId() + ", Matrícula: " + joao.getMatricula() + ")");
+        System.out.println("   - Maria (ID: " + maria.getId() + ", Matrícula: " + maria.getMatricula() + ")");
+        System.out.println("   - Segurança (ID: " + seguranca.getId() + ", Crachá: " + seguranca.getNumeroCracha() + ")");
+        System.out.println("   - Visitante (ID: " + visitante.getId() + ", Crachá: " + visitante.getNumeroCracha() + ")\n");
     }
 
-    private static void testarFuncionalidades(FuncionarioService funcService,
-                                              CargoService cargoService,
+    private static void testarFuncionalidades(PessoaService pessoaService,
                                               PontoService pontoService) {
         System.out.println("2. TESTANDO FUNCIONALIDADES...");
 
-        // Buscar funcionários
-        Funcionario joao = em.find(Funcionario.class, 1);
-        FuncionarioTerceirizado carlos = em.find(FuncionarioTerceirizado.class, 4);
+        System.out.println("--- BUSCANDO PESSOAS ---");
+        System.out.println("✅ Pessoas carregadas: " + joao.getNome() + " (ID: " + joao.getId() + "), " +
+                maria.getNome() + " (ID: " + maria.getId() + "), " +
+                seguranca.getNome() + " (ID: " + seguranca.getId() + "), " +
+                visitante.getNome() + " (ID: " + visitante.getId() + ")");
 
         // Testar bater ponto
-        pontoService.baterPonto(joao);
-        pontoService.baterPonto(joao);
-        pontoService.baterPonto(carlos);
+        System.out.println("--- BATENDO PONTO ---");
+        try {
+            pontoService.baterPonto(joao);
+            pontoService.baterPonto(joao);
+            pontoService.baterPonto(seguranca);
+        } catch (Exception e) {
+            System.out.println("❌ Erro ao bater ponto: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         // Testar registrar atividade
-        funcService.registrarAtividade(joao, "Desenvolvimento do módulo de relatórios",
-                new BigDecimal("4.5"));
+        System.out.println("--- REGISTRANDO ATIVIDADE ---");
+        try {
+            pessoaService.registrarAtividade(maria, "Entrevista com candidato", new BigDecimal("2.0"));
+        } catch (Exception e) {
+            System.out.println("❌ Erro ao registrar atividade: " + e.getMessage());
+        }
 
-        System.out.println("✅ Funcionalidades testadas com sucesso!\n");
+        // Testar renovar contrato
+        System.out.println("--- RENOVANDO CONTRATO ---");
+        try {
+            pessoaService.renovarContrato(seguranca, 6);
+        } catch (Exception e) {
+            System.out.println("❌ Erro ao renovar contrato: " + e.getMessage());
+        }
+
+        // Testar registrar saída do visitante
+        System.out.println("--- REGISTRANDO SAÍDA DO VISITANTE ---");
+        try {
+            visitante.registrarSaida();
+            em.getTransaction().begin();
+            em.merge(visitante);
+            em.getTransaction().commit();
+            System.out.println("✅ Saída registrada para " + visitante.getNome());
+        } catch (Exception e) {
+            System.out.println("❌ Erro ao registrar saída: " + e.getMessage());
+        }
+
+        System.out.println("✅ Funcionalidades testadas!\n");
     }
 
-    private static void gerarRelatorios(RelatorioService relatorioService,
-                                        CargoService cargoService) {
+    private static void gerarRelatorios(RelatorioService relatorioService) {
         System.out.println("3. GERANDO RELATÓRIOS...\n");
 
-        // Relatório de funcionários por departamento
-        System.out.println("--- FUNCIONÁRIOS POR DEPARTAMENTO ---");
-        relatorioService.funcionariosPorDepartamento();
+        System.out.println("--- SALÁRIOS TOTAIS ---");
+        System.out.println("Analistas: R$ " + analista.getSalarioTotal());
+        System.out.println("Gerentes: R$ " + gerente.getSalarioTotal());
 
-        // Relatório de folha de pagamento
-        System.out.println("\n--- FOLHA DE PAGAMENTO ---");
-        BigDecimal folhaTotal = cargoService.calcularFolhaPagamentoTotal();
-        System.out.println("Total: R$ " + folhaTotal);
+        System.out.println("\n--- CIRCULAÇÃO DIÁRIA ---");
+        relatorioService.circulacaoDiaria();
 
-        // Relatório de visitantes
         System.out.println("\n--- VISITANTES ATIVOS ---");
-        relatorioService.visitantesAtivos();
+        List<Visitante> visitantesAtivos = em.createQuery(
+                        "SELECT v FROM Visitante v WHERE v.dataHoraSaida IS NULL", Visitante.class)
+                .getResultList();
 
-        // Relatório de terceirizados
-        System.out.println("\n--- FUNCIONÁRIOS TERCEIRIZADOS ---");
-        relatorioService.terceirizadosPorResponsavel();
+        if (visitantesAtivos.isEmpty()) {
+            System.out.println("Nenhum visitante ativo no momento");
+        } else {
+            for (Visitante v : visitantesAtivos) {
+                System.out.println(v.getNome() + " - " + v.getMotivoVisita() +
+                        " (" + v.getTempoPermanenciaMinutos() + " minutos)");
+            }
+        }
+
+        System.out.println("\n--- FUNCIONÁRIOS POR DEPARTAMENTO ---");
+        relatorioService.funcionariosPorDepartamento();
     }
 }

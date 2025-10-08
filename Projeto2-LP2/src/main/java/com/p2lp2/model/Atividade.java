@@ -10,7 +10,7 @@ public class Atividade extends EntidadeBase {
 
     @ManyToOne
     @JoinColumn(name = "id_funcionario", nullable = false)
-    private Funcionario funcionario;
+    private Pessoa funcionario;
 
     @Column(name = "descricao", nullable = false, columnDefinition = "TEXT")
     private String descricao;
@@ -24,13 +24,13 @@ public class Atividade extends EntidadeBase {
     // Construtores
     public Atividade() {}
 
-    public Atividade(Funcionario funcionario, String descricao, LocalDateTime dataRegistro) {
+    public Atividade(Pessoa funcionario, String descricao, LocalDateTime dataRegistro) {
         this.funcionario = funcionario;
         this.descricao = descricao;
         this.dataRegistro = dataRegistro;
     }
 
-    public Atividade(Funcionario funcionario, String descricao, LocalDateTime dataRegistro, BigDecimal horasTrabalhadas) {
+    public Atividade(Pessoa funcionario, String descricao, LocalDateTime dataRegistro, BigDecimal horasTrabalhadas) {
         this.funcionario = funcionario;
         this.descricao = descricao;
         this.dataRegistro = dataRegistro;
@@ -38,8 +38,8 @@ public class Atividade extends EntidadeBase {
     }
 
     // Getters e Setters
-    public Funcionario getFuncionario() { return funcionario; }
-    public void setFuncionario(Funcionario funcionario) { this.funcionario = funcionario; }
+    public Pessoa getFuncionario() { return funcionario; }
+    public void setFuncionario(Pessoa funcionario) { this.funcionario = funcionario; }
 
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }

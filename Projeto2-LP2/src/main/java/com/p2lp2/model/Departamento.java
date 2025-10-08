@@ -1,7 +1,6 @@
 package com.p2lp2.model;
 
 import jakarta.persistence.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,39 +15,27 @@ public class Departamento extends EntidadeBase {
     private List<Funcionario> funcionarios = new ArrayList<>();
 
     @OneToMany(mappedBy = "departamento")
-    private List<FuncionarioTerceirizado> terceirizados = new ArrayList<>();
+    private List<Terceirizado> terceirizados = new ArrayList<>();
 
-    @OneToMany(mappedBy = "departamento")
+    @OneToMany(mappedBy = "departamentoVisitado")
     private List<Visitante> visitantes = new ArrayList<>();
 
     // Construtor
-    public Departamento() {
-    }
+    public Departamento() {}
 
     public Departamento(String nome) {
         this.nome = nome;
     }
 
     // Getters & Setters
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public String getNome() {
-        return nome;
-    }
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
+    public List<Funcionario> getFuncionarios() { return funcionarios; }
+    public void setFuncionarios(List<Funcionario> funcionarios) { this.funcionarios = funcionarios; }
 
-    public List<Funcionario> getFuncionarios() {
-        return funcionarios;
-    }
-    public void setFuncionarios(List<Funcionario> funcionarios) {
-        this.funcionarios = funcionarios;
-    }
-
-    public List<FuncionarioTerceirizado> getTerceirizados() {
-        return terceirizados;
-    }
-    public void setFuncionariosTerceirizados(List<FuncionarioTerceirizado> terceirizados) { this.terceirizados = terceirizados; }
+    public List<Terceirizado> getTerceirizados() { return terceirizados; }
+    public void setTerceirizados(List<Terceirizado> terceirizados) { this.terceirizados = terceirizados; }
 
     public List<Visitante> getVisitantes() { return visitantes; }
     public void setVisitantes(List<Visitante> visitantes) { this.visitantes = visitantes; }

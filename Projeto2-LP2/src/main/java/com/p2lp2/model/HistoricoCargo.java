@@ -1,17 +1,11 @@
 package com.p2lp2.model;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "Historico_Cargo")
 public class HistoricoCargo extends EntidadeBase {
-
-    @Column(name = "nome", nullable = false, length = 100)
-    private String nome;
 
     @ManyToOne
     @JoinColumn(name = "id_funcionario", nullable = false)

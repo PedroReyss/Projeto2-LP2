@@ -1,66 +1,51 @@
-CREATE DATABASE P2_LP2
-USE P2_LP2
-
 -- Tabela Departamento
 CREATE TABLE Departamento (
     id INT PRIMARY KEY IDENTITY(1,1),
     nome VARCHAR(100) NOT NULL
 );
 
--- Tabela Cargo  
+-- Tabela Cargo
 CREATE TABLE Cargo (
     id INT PRIMARY KEY IDENTITY(1,1),
     nome VARCHAR(100) NOT NULL,
     SalarioBase DECIMAL(10,2) NOT NULL
 );
 
--- Tabela Pessoa
 CREATE TABLE Pessoa (
     id INT PRIMARY KEY IDENTITY(1,1),
     nome VARCHAR(100) NOT NULL,
     CPF VARCHAR(11) UNIQUE NOT NULL,
-    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('PROPRIO', 'TERCEIRIZADO', 'VISITANTE'))
-);
+    tipo_pessoa VARCHAR(20) NOT NULL CHECK (tipo_pessoa IN ('FUNCIONARIO', 'TERCEIRIZADO', 'VISITANTE')),
 
--- Tabela Funcionario (PRÓPRIO)
-CREATE TABLE Funcionario (
-    id INT PRIMARY KEY FOREIGN KEY REFERENCES Pessoa(id),
-    data_nascimento DATE NOT NULL,E
-    matricula VARCHAR(5) UNIQUE NOT NULL,
-    id_cargo INT NOT NULL,
-    id_departamento INT NOT NULL,
-    FOREIGN KEY (id_cargo) REFERENCES Cargo(id),
-    FOREIGN KEY (id_departamento) REFERENCES Departamento(id)
-);
+    -- Campos de Funcionario (podem ser NULL para outros tipos)
+    data_nascimento DATE NULL,
+    matricula VARCHAR(5) NULL,
+    id_cargo INT NULL,
+    id_departamento INT NULL,
 
--- Tabela FuncionarioTerceirizado
-CREATE TABLE FuncionarioTerceirizado (
-    id INT PRIMARY KEY FOREIGN KEY REFERENCES Pessoa(id),
-    funcao VARCHAR(100) NOT NULL,
-    empresa_prestadora VARCHAR(100) NOT NULL,
-    data_inicio_contrato DATE NOT NULL,
-    data_fim_contrato DATE NOT NULL,
-    id_responsavel INT,
-    id_departamento INT NOT NULL,
-    FOREIGN KEY (id_responsavel) REFERENCES Funcionario(id),
-    FOREIGN KEY (id_departamento) REFERENCES Departamento(id)
-);
+    -- Campos de Terceirizado
+    funcao VARCHAR(100) NULL,
+    empresa_prestadora VARCHAR(100) NULL,
+    data_inicio_contrato DATE NULL,
+    data_fim_contrato DATE NULL,
+    id_responsavel INT NULL,
+    id_departamento_terceirizado INT NULL,
 
--- Tabela Visitante
-CREATE TABLE Visitante (
-    id INT PRIMARY KEY FOREIGN KEY REFERENCES Pessoa(id),
-    motivo_visita VARCHAR(200) NOT NULL,
-    data_hora_entrada DATETIME NOT NULL,
+    -- Campos de Visitante
+    motivo_visita VARCHAR(200) NULL,
+    data_hora_entrada DATETIME NULL,
     data_hora_saida DATETIME NULL,
     id_funcionario_visitado INT NULL,
     id_departamento_visitado INT NULL,
-    numero_cracha VARCHAR(10) UNIQUE NULL,
+    numero_cracha VARCHAR(10) NULL,
 
-    FOREIGN KEY (id_funcionario_visitado) REFERENCES Funcionario(id),
-    FOREIGN KEY (id_departamento_visitado) REFERENCES Departamento(id),
-
-    -- Garante que pelo menos um é preenchido
-    CHECK (id_funcionario_visitado IS NOT NULL OR id_departamento_visitado IS NOT NULL)
+    -- Foreign Keys
+    FOREIGN KEY (id_cargo) REFERENCES Cargo(id),
+    FOREIGN KEY (id_departamento) REFERENCES Departamento(id),
+    FOREIGN KEY (id_departamento_terceirizado) REFERENCES Departamento(id),
+    FOREIGN KEY (id_responsavel) REFERENCES Pessoa(id),
+    FOREIGN KEY (id_funcionario_visitado) REFERENCES Pessoa(id),
+    FOREIGN KEY (id_departamento_visitado) REFERENCES Departamento(id)
 );
 
 -- Tabela Projeto
@@ -79,7 +64,7 @@ CREATE TABLE Funcionario_Projeto (
     id_projeto INT NOT NULL,
     data_inicio DATE NOT NULL,
     data_fim DATE,
-    FOREIGN KEY (id_funcionario) REFERENCES Funcionario(id),
+    FOREIGN KEY (id_funcionario) REFERENCES Pessoa(id),
     FOREIGN KEY (id_projeto) REFERENCES Projeto(id)
 );
 
@@ -87,28 +72,37 @@ CREATE TABLE Funcionario_Projeto (
 CREATE TABLE HistoricoCargo (
     id INT PRIMARY KEY IDENTITY(1,1),
     id_funcionario INT NOT NULL,
-	id_cargo INT NOT NULL,
+    id_cargo INT NOT NULL,
     data_inicio DATETIME NOT NULL,
-	data_fim DATETIME,
-    FOREIGN KEY (id_funcionario) REFERENCES Funcionario(id),
-	FOREIGN KEY (id_cargo) REFERENCES Cargo(id)
+    data_fim DATETIME,
+    FOREIGN KEY (id_funcionario) REFERENCES Pessoa(id),
+    FOREIGN KEY (id_cargo) REFERENCES Cargo(id)
 );
 
--- Tabela Ponto
+-- TABELA PONTO ATUALIZADA (agora referencia Pessoa)
 CREATE TABLE Ponto (
     id INT PRIMARY KEY IDENTITY(1,1),
-    id_funcionario INT NOT NULL,
+    id_pessoa INT NOT NULL,
     data_hora DATETIME NOT NULL,
     tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('entrada', 'saida')),
-    FOREIGN KEY (id_funcionario) REFERENCES Funcionario(id)
+    FOREIGN KEY (id_pessoa) REFERENCES Pessoa(id)
 );
 
--- Tabela Atividade
+-- TABELA ATIVIDADE ATUALIZADA (agora referencia Pessoa)
 CREATE TABLE Atividade (
     id INT PRIMARY KEY IDENTITY(1,1),
     id_funcionario INT NOT NULL,
     descricao TEXT NOT NULL,
     data_registro DATETIME NOT NULL,
     horas_trabalhadas DECIMAL(4,2),
-    FOREIGN KEY (id_funcionario) REFERENCES Funcionario(id)
+    FOREIGN KEY (id_funcionario) REFERENCES Pessoa(id)
+);
+
+-- TABELA DE ASSOCIAÇÃO TERCEIRIZADO-DEPARTAMENTO (se ainda precisar)
+CREATE TABLE Terceirizado_Departamento (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    id_terceirizado INT NOT NULL,
+    id_departamento INT NOT NULL,
+    FOREIGN KEY (id_terceirizado) REFERENCES Pessoa(id),
+    FOREIGN KEY (id_departamento) REFERENCES Departamento(id)
 );

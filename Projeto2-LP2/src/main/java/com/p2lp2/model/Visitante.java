@@ -4,14 +4,13 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Visitante")
-@PrimaryKeyJoinColumn(name = "id")
+@DiscriminatorValue("VISITANTE")
 public class Visitante extends Pessoa {
 
-    @Column(name = "motivo_visita", nullable = false, length = 200)
+    @Column(name = "motivo_visita", length = 200)
     private String motivoVisita;
 
-    @Column(name = "data_hora_entrada", nullable = false)
+    @Column(name = "data_hora_entrada")
     private LocalDateTime dataHoraEntrada;
 
     @Column(name = "data_hora_saida")
@@ -19,34 +18,33 @@ public class Visitante extends Pessoa {
 
     @ManyToOne
     @JoinColumn(name = "id_funcionario_visitado")
-    private Funcionario funcionarioVisitado;
+    private Pessoa funcionarioVisitado;
 
     @ManyToOne
     @JoinColumn(name = "id_departamento_visitado")
     private Departamento departamentoVisitado;
 
-    @Column(name = "numero_cracha", unique = true, length = 10)
-    private String numeroCracha;
-
-    // Construtor
     public Visitante() {}
 
-    // Construtor funcionario
     public Visitante(String nome, String cpf, String motivoVisita,
-                     LocalDateTime dataHoraEntrada, Funcionario funcionarioVisitado) {
-        super(nome, cpf, "visitante");
+                     LocalDateTime dataHoraEntrada, Pessoa funcionarioVisitado) {
+        setNome(nome);
+        setCpf(cpf);
         this.motivoVisita = motivoVisita;
         this.dataHoraEntrada = dataHoraEntrada;
         this.funcionarioVisitado = funcionarioVisitado;
+
+        // Define o departamento visitado baseado no funcionário
+        if (funcionarioVisitado != null && funcionarioVisitado.getDepartamento() != null) {
+            this.departamentoVisitado = funcionarioVisitado.getDepartamento();
+        }
     }
 
-    // construtor departamento
-    public Visitante(String nome, String cpf, String motivoVisita,
-                     LocalDateTime dataHoraEntrada, Departamento departamentoVisitado) {
-        super(nome, cpf, "visitante");
-        this.motivoVisita = motivoVisita;
-        this.dataHoraEntrada = dataHoraEntrada;
-        this.departamentoVisitado = departamentoVisitado;
+    // Método para ser chamado após a persistência
+    public void gerarDadosVisitante() {
+        if (getNumeroCracha() == null) {
+            setNumeroCracha(gerarNumeroCracha());
+        }
     }
 
     // Getters e Setters
@@ -59,12 +57,33 @@ public class Visitante extends Pessoa {
     public LocalDateTime getDataHoraSaida() { return dataHoraSaida; }
     public void setDataHoraSaida(LocalDateTime dataHoraSaida) { this.dataHoraSaida = dataHoraSaida; }
 
-    public Funcionario getFuncionarioVisitado() { return funcionarioVisitado; }
-    public void setFuncionarioVisitado(Funcionario funcionarioVisitado) { this.funcionarioVisitado = funcionarioVisitado; }
+    public Pessoa getFuncionarioVisitado() { return funcionarioVisitado; }
+    public void setFuncionarioVisitado(Pessoa funcionarioVisitado) { this.funcionarioVisitado = funcionarioVisitado; }
 
     public Departamento getDepartamentoVisitado() { return departamentoVisitado; }
     public void setDepartamentoVisitado(Departamento departamentoVisitado) { this.departamentoVisitado = departamentoVisitado; }
 
-    public String getNumeroCracha() { return numeroCracha; }
-    public void setNumeroCracha(String numeroCracha) { this.numeroCracha = numeroCracha; }
+    @Override
+    public String getTipoPessoa() {
+        return "VISITANTE";
+    }
+
+    @Override
+    public void registrarSaida() {
+        this.dataHoraSaida = LocalDateTime.now();
+    }
+
+    @Override
+    public boolean isNaEmpresa() {
+        return dataHoraSaida == null;
+    }
+
+    @Override
+    public long getTempoPermanenciaMinutos() {
+        if (dataHoraEntrada == null) return 0;
+        if (dataHoraSaida == null) {
+            return java.time.Duration.between(dataHoraEntrada, LocalDateTime.now()).toMinutes();
+        }
+        return java.time.Duration.between(dataHoraEntrada, dataHoraSaida).toMinutes();
+    }
 }
