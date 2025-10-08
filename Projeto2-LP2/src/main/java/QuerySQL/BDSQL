@@ -1,4 +1,9 @@
 -- Tabela Departamento
+
+Create database P2_LP2
+
+use P2_LP2
+
 CREATE TABLE Departamento (
     id INT PRIMARY KEY IDENTITY(1,1),
     nome VARCHAR(100) NOT NULL
