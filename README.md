@@ -1,6 +1,8 @@
 # 📋 Sistema OrganizaTec - Sistema de Gestão Organizacional
 ## ⚙️ **Integrantes**
+
 André Mendes Garcia - 081230012
+
 Pedro Henrique Simões Reys - 081230022
 ## 🎯 **Intuito do Sistema**
 
