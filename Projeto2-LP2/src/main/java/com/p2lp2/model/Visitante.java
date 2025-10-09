@@ -69,16 +69,6 @@ public class Visitante extends Pessoa {
     }
 
     @Override
-    public void registrarSaida() {
-        this.dataHoraSaida = LocalDateTime.now();
-    }
-
-    @Override
-    public boolean isNaEmpresa() {
-        return dataHoraSaida == null;
-    }
-
-    @Override
     public long getTempoPermanenciaMinutos() {
         if (dataHoraEntrada == null) return 0;
         if (dataHoraSaida == null) {

@@ -1,53 +1,30 @@
 package com.p2lp2;
 
-import com.p2lp2.model.*;
-import com.p2lp2.service.*;
-
-import jakarta.persistence.*;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
+import com.p2lp2.service.MenuPrincipal;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 
 public class Main {
-    private static EntityManagerFactory emf;
-    private static EntityManager em;
-
-    // Variáveis para armazenar os objetos criados
-    private static Funcionario joao;
-    private static Funcionario maria;
-    private static Terceirizado seguranca;
-    private static Visitante visitante;
-    private static Cargo analista;
-    private static Cargo gerente;
-
     public static void main(String[] args) {
+        EntityManagerFactory emf = null;
+        EntityManager em = null;
+
         try {
             emf = Persistence.createEntityManagerFactory("sistema-funcionarios");
             em = emf.createEntityManager();
 
-            System.out.println("=== SISTEMA DE GESTÃO ORGANIZATEC ===\n");
+            System.out.println("=== SISTEMA ORGANIZATEC INICIADO ===");
 
-            // 1. LIMPAR TABELAS EXISTENTES
-            limparTabelas();
+            limparBanco(em);
 
-            // Services
-            PessoaService pessoaService = new PessoaService(em);
-            PontoService pontoService = new PontoService(em);
-            RelatorioService relatorioService = new RelatorioService(em);
+            criarDadosIniciais(em);
 
-            // 2. CRIAR DADOS DE TESTE
-            criarDadosTeste();
-
-            // 3. TESTAR FUNCIONALIDADES
-            testarFuncionalidades(pessoaService, pontoService);
-
-            // 4. GERAR RELATÓRIOS
-            gerarRelatorios(relatorioService);
-
-            System.out.println("\n✅ DEMONSTRAÇÃO CONCLUÍDA!");
+            MenuPrincipal menu = new MenuPrincipal(em);
+            menu.exibirMenu();
 
         } catch (Exception e) {
+            System.err.println("Erro no sistema: " + e.getMessage());
             e.printStackTrace();
         } finally {
             if (em != null) em.close();
@@ -55,8 +32,8 @@ public class Main {
         }
     }
 
-    private static void limparTabelas() {
-        System.out.println("🔄 LIMPANDO TABELAS EXISTENTES...");
+    private static void limparBanco(EntityManager em) {
+        System.out.println("🔄 Limpando banco de dados...");
         em.getTransaction().begin();
 
         em.createQuery("DELETE FROM Ponto").executeUpdate();
@@ -69,145 +46,28 @@ public class Main {
         em.createQuery("DELETE FROM Projeto").executeUpdate();
 
         em.getTransaction().commit();
-        System.out.println("✅ Tabelas limpas!\n");
+        System.out.println("✅ Banco limpo com sucesso!\n");
     }
 
-    private static void criarDadosTeste() {
-        System.out.println("1. CRIANDO DADOS DE TESTE...");
-
+    private static void criarDadosIniciais(EntityManager em) {
+        System.out.println("🏗️ Criando dados iniciais...");
         em.getTransaction().begin();
 
         // Departamentos
-        Departamento rh = new Departamento("Recursos Humanos");
-        Departamento ti = new Departamento("Tecnologia da Informação");
+        com.p2lp2.model.Departamento rh = new com.p2lp2.model.Departamento("Recursos Humanos");
+        com.p2lp2.model.Departamento ti = new com.p2lp2.model.Departamento("Tecnologia da Informação");
         em.persist(rh);
         em.persist(ti);
 
         // Cargos
-        analista = new Cargo("Analista", new BigDecimal("5000.00"));
-        gerente = new Cargo("Gerente", new BigDecimal("8000.00"));
+        com.p2lp2.model.Cargo analista = new com.p2lp2.model.Cargo("Analista", new java.math.BigDecimal("5000.00"));
+        com.p2lp2.model.Cargo gerente = new com.p2lp2.model.Cargo("Gerente", new java.math.BigDecimal("8000.00"));
+        com.p2lp2.model.Cargo estagiario = new com.p2lp2.model.Cargo("Estagiário", new java.math.BigDecimal("1500.00"));
         em.persist(analista);
         em.persist(gerente);
-
-        // Funcionário 1
-        joao = new Funcionario("João Silva", "11111111111",
-                LocalDate.of(1990, 5, 15), analista, ti);
-        em.persist(joao);
-        em.flush();
-        joao.gerarDadosFuncionario();
-        em.merge(joao);
-
-        // Funcionário 2 (responsável)
-        maria = new Funcionario("Maria Santos", "22222222222",
-                LocalDate.of(1985, 8, 20), gerente, rh);
-        em.persist(maria);
-        em.flush();
-        maria.gerarDadosFuncionario();
-        em.merge(maria);
-
-        // Terceirizado
-        seguranca = new Terceirizado("Carlos Lima", "33333333333", "Segurança", "SegurMax",
-                LocalDate.now().minusMonths(2), LocalDate.now().plusMonths(10),
-                maria, ti);
-        em.persist(seguranca);
-        em.flush();
-        seguranca.gerarDadosTerceirizado();
-        em.merge(seguranca);
-
-        // Visitante
-        visitante = new Visitante("Roberto Alves", "44444444444",
-                "Reunião comercial", LocalDateTime.now().minusHours(2), maria);
-        em.persist(visitante);
-        em.flush();
-        visitante.gerarDadosVisitante();
-        em.merge(visitante);
+        em.persist(estagiario);
 
         em.getTransaction().commit();
-
-        System.out.println("✅ Dados criados!");
-        System.out.println("   - João (ID: " + joao.getId() + ", Matrícula: " + joao.getMatricula() + ")");
-        System.out.println("   - Maria (ID: " + maria.getId() + ", Matrícula: " + maria.getMatricula() + ")");
-        System.out.println("   - Segurança (ID: " + seguranca.getId() + ", Crachá: " + seguranca.getNumeroCracha() + ")");
-        System.out.println("   - Visitante (ID: " + visitante.getId() + ", Crachá: " + visitante.getNumeroCracha() + ")\n");
-    }
-
-    private static void testarFuncionalidades(PessoaService pessoaService,
-                                              PontoService pontoService) {
-        System.out.println("2. TESTANDO FUNCIONALIDADES...");
-
-        System.out.println("--- BUSCANDO PESSOAS ---");
-        System.out.println("✅ Pessoas carregadas: " + joao.getNome() + " (ID: " + joao.getId() + "), " +
-                maria.getNome() + " (ID: " + maria.getId() + "), " +
-                seguranca.getNome() + " (ID: " + seguranca.getId() + "), " +
-                visitante.getNome() + " (ID: " + visitante.getId() + ")");
-
-        // Testar bater ponto
-        System.out.println("--- BATENDO PONTO ---");
-        try {
-            pontoService.baterPonto(joao);
-            pontoService.baterPonto(joao);
-            pontoService.baterPonto(seguranca);
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao bater ponto: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        // Testar registrar atividade
-        System.out.println("--- REGISTRANDO ATIVIDADE ---");
-        try {
-            pessoaService.registrarAtividade(maria, "Entrevista com candidato", new BigDecimal("2.0"));
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao registrar atividade: " + e.getMessage());
-        }
-
-        // Testar renovar contrato
-        System.out.println("--- RENOVANDO CONTRATO ---");
-        try {
-            pessoaService.renovarContrato(seguranca, 6);
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao renovar contrato: " + e.getMessage());
-        }
-
-        // Testar registrar saída do visitante
-        System.out.println("--- REGISTRANDO SAÍDA DO VISITANTE ---");
-        try {
-            visitante.registrarSaida();
-            em.getTransaction().begin();
-            em.merge(visitante);
-            em.getTransaction().commit();
-            System.out.println("✅ Saída registrada para " + visitante.getNome());
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao registrar saída: " + e.getMessage());
-        }
-
-        System.out.println("✅ Funcionalidades testadas!\n");
-    }
-
-    private static void gerarRelatorios(RelatorioService relatorioService) {
-        System.out.println("3. GERANDO RELATÓRIOS...\n");
-
-        System.out.println("--- SALÁRIOS TOTAIS ---");
-        System.out.println("Analistas: R$ " + analista.getSalarioTotal());
-        System.out.println("Gerentes: R$ " + gerente.getSalarioTotal());
-
-        System.out.println("\n--- CIRCULAÇÃO DIÁRIA ---");
-        relatorioService.circulacaoDiaria();
-
-        System.out.println("\n--- VISITANTES ATIVOS ---");
-        List<Visitante> visitantesAtivos = em.createQuery(
-                        "SELECT v FROM Visitante v WHERE v.dataHoraSaida IS NULL", Visitante.class)
-                .getResultList();
-
-        if (visitantesAtivos.isEmpty()) {
-            System.out.println("Nenhum visitante ativo no momento");
-        } else {
-            for (Visitante v : visitantesAtivos) {
-                System.out.println(v.getNome() + " - " + v.getMotivoVisita() +
-                        " (" + v.getTempoPermanenciaMinutos() + " minutos)");
-            }
-        }
-
-        System.out.println("\n--- FUNCIONÁRIOS POR DEPARTAMENTO ---");
-        relatorioService.funcionariosPorDepartamento();
+        System.out.println("✅ Dados iniciais criados!\n");
     }
 }

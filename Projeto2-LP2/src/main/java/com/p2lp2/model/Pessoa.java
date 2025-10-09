@@ -69,9 +69,5 @@ public abstract class Pessoa extends EntidadeBase {
     // Métodos abstratos
     public abstract String getTipoPessoa();
 
-    public void registrarSaida() {}
-
-    public boolean isNaEmpresa() { return false; }
-
     public long getTempoPermanenciaMinutos() { return 0; }
 }
