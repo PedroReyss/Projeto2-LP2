@@ -1,5 +1,7 @@
 # 📋 Sistema OrganizaTec - Sistema de Gestão Organizacional
-
+## ⚙️ **Integrantes**
+André Mendes Garcia - 081230012
+Pedro Henrique Simões Reys - 081230022
 ## 🎯 **Intuito do Sistema**
 
 O **OrganizaTec** é um sistema completo de gestão organizacional desenvolvido em Java com Hibernate e SQL Server. Ele permite o controle integrado de funcionários, terceirizados e visitantes, oferecendo funcionalidades de registro de ponto, atividades, contratos e relatórios.
